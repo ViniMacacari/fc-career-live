@@ -1,0 +1,93 @@
+name: mcmanager
+description: "FC Career Live: acompanhe suas carreiras no EA FC."
+publish_to: 'none'
+version: 0.13.2+106
+
+environment:
+  sdk: ^3.13.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  app_settings: any
+  archive: any
+  cached_network_image: any
+  collection: any
+  connectivity_plus: any
+  cupertino_icons: any
+  dotted_border: any
+  easy_localization: any
+  encrypt: any
+  file_picker: any
+  firebase_analytics: any
+  firebase_core: any
+  firebase_crashlytics: any
+  firebase_messaging: any
+  fl_chart: any
+  flutter_email_sender: any
+  flutter_fireworks: any
+  flutter_secure_storage: any
+  flutter_slidable: any
+  flutter_svg: any
+  flutter_tournament_bracket: any
+  flutter_typeahead: any
+  fullscreen_image_viewer: any
+  get_it: any
+  get_storage: any
+  getwidget: any
+  google_fonts: any
+  http: any
+  icons_plus: any
+  image_picker: any
+  in_app_review: any
+  intl: any
+  jiffy: any
+  material_color_utilities: any
+  modal_bottom_sheet: any
+  month_picker_dialog: any
+  path: any
+  path_provider: any
+  primer_progress_bar: any
+  provider: any
+  share_plus: any
+  shared_preferences: any
+  showcaseview: any
+  speech_to_text: any
+  sqflite: any
+  sqflite_common: any
+  syncfusion_flutter_datagrid: any
+  table_calendar: any
+  tabler_icons_plus: any
+  url_launcher: any
+  uuid: any
+  zoom_widget: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  sqflite_common_ffi: ^2.4.3
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope.ttf
+  assets:
+    - assets/
+    - assets/branding/
+    - assets/fonts/OFL-Manrope.txt
+    - assets/images/
+    - assets/images/clubLogos/
+    - assets/images/cupsLogos/
+    - assets/images/tournamentLogos/
+    - assets/images/tournamentLogos/FIFA23/
+    - assets/images/tournamentLogos/FC24/
+    - assets/images/tournamentLogos/FC25/
+    - assets/images/tournamentLogos/FC27/
+    - assets/numbers/
+    - assets/translations/

@@ -1,0 +1,4 @@
+* text=auto
+assets/** -text
+*.bat text eol=crlf
+android/gradlew text eol=lf

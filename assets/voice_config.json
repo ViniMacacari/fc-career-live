@@ -1,0 +1,1010 @@
+{
+  "ru": {
+    "decimal": [
+      "точка",
+      ",",
+      "."
+    ],
+    "stats": {
+      "rating": [
+        "рейтинг"
+      ],
+      "shotsCount": [
+        "удары"
+      ],
+      "shotAccuracy": [
+        "точность ударов"
+      ],
+      "passes": [
+        "пасы",
+        "басы"
+      ],
+      "keyPasses": [
+        "ключевые пасы",
+        "ключевые басы"
+      ],
+      "passAccuracy": [
+        "точность пасов",
+        "точность басов",
+        "точность босов",
+        "точность посов",
+        "точность передач",
+        "точность передача"
+      ],
+      "tackles": [
+        "отборы"
+      ],
+      "tacklesAccuracy": [
+        "успешные отборы",
+        "успешный отборы",
+        "успешный отбор"
+      ],
+      "dribbles": [
+        "обводки",
+        "дриблинг"
+      ],
+      "dribblesAccuracy": [
+        "успешные обводки",
+        "успешный дриблинг"
+      ],
+      "saves": [
+        "сэйвы",
+        "сейвы"
+      ],
+      "penaltySaves": [
+        "отбитые пенальти"
+      ]
+    },
+    "events": {
+      "goal": [
+        "гол на",
+        "гол",
+        "гола",
+        "голы на",
+        "голы"
+      ],
+      "assist": [
+        "ассист на",
+        "ассисты на",
+        "ассист",
+        "ассисты",
+        "голевая передача на",
+        "голевая передача",
+        "голевые передачи на",
+        "голевые передачи"
+      ],
+      "substitution_in": [
+        "вышел на поле на",
+        "вышел на поле",
+        "вышел на",
+        "вышел",
+        "выход на поле на",
+        "выход на поле",
+        "выход на",
+        "выход"
+      ],
+      "substitution_out": [
+        "заменён",
+        "заменен",
+        "ушёл с поля на",
+        "ушел с поля на",
+        "ушёл с поля",
+        "ушел с поля",
+        "ушёл на",
+        "ушел на",
+        "ушёл",
+        "ушел"
+      ],
+      "yellowCard": [
+        "жёлтая карточка на",
+        "желтая карточка на",
+        "жёлтые карточки на",
+        "желтые карточки на",
+        "жёлтая карточка",
+        "желтая карточка",
+        "жёлтые карточки",
+        "желтые карточки",
+        "желтая на",
+        "жёлтая на",
+        "жёлтые на",
+        "желтые на",
+        "желтая",
+        "жёлтая",
+        "жёлтые",
+        "желтые"
+      ],
+      "redCard": [
+        "красная карточка на",
+        "красная карточка",
+        "красная на",
+        "красная",
+        "удален с поля на",
+        "удален с поля",
+        "удален на",
+        "удален",
+        "удаление на",
+        "удаление"
+      ],
+      "ownGoal": [
+        "автогол на",
+        "автогол",
+        "автоголы на",
+        "автоголы"
+      ],
+      "missedPenalty": [
+        "нереализованный пенальти на",
+        "нереализованный пенальти",
+        "незабитый пенальти на",
+        "незабитый пенальти"
+      ],
+      "injury": [
+        "травма на",
+        "травма",
+        "травмирован на",
+        "травмирован"
+      ]
+    }
+  },
+  "en": {
+    "decimal": [
+      "point",
+      "dot",
+      ",",
+      "."
+    ],
+    "stats": {
+      "rating": [
+        "rating",
+        "player rating"
+      ],
+      "shotsCount": [
+        "shots",
+        "total shots"
+      ],
+      "shotAccuracy": [
+        "shot accuracy",
+        "shots accuracy"
+      ],
+      "passes": [
+        "passes",
+        "pass",
+        "total passes"
+      ],
+      "keyPasses": [
+        "key passes",
+        "key pass"
+      ],
+      "passAccuracy": [
+        "pass accuracy",
+        "passing accuracy",
+        "passes accuracy"
+      ],
+      "tackles": [
+        "tackles",
+        "tackle"
+      ],
+      "tacklesAccuracy": [
+        "tackle success rate",
+        "tackles success rate",
+        "tackle accuracy",
+        "successful tackles",
+        "tackles success"
+      ],
+      "dribbles": [
+        "dribbles",
+        "dribble"
+      ],
+      "dribblesAccuracy": [
+        "dribble success rate",
+        "dribble accuracy",
+        "successful dribbles"
+      ],
+      "saves": [
+        "saves",
+        "save"
+      ],
+      "penaltySaves": [
+        "penalty saves",
+        "saved penalties",
+        "penalty save"
+      ]
+    },
+    "events": {
+      "goal": [
+        "goal",
+        "goals"
+      ],
+      "assist": [
+        "assist",
+        "assists"
+      ],
+      "substitution_in": [
+        "subbed on",
+        "comes on",
+        "came on",
+        "entered the pitch",
+        "substitution in"
+      ],
+      "substitution_out": [
+        "subbed off",
+        "comes off",
+        "came off",
+        "left the pitch",
+        "substitution out"
+      ],
+      "yellowCard": [
+        "yellow card",
+        "yellow cards",
+        "yellows",
+        "yellow"
+      ],
+      "redCard": [
+        "red card",
+        "red cards",
+        "reds"
+      ],
+      "ownGoal": [
+        "own goal",
+        "own goals"
+      ],
+      "missedPenalty": [
+        "missed penalty",
+        "missed penalties",
+        "penalty missed",
+        "penalties missed"
+      ],
+      "injury": [
+        "injury",
+        "injuries",
+        "injured"
+      ]
+    }
+  },
+  "it": {
+    "decimal": [
+      "virgola",
+      "punto",
+      ",",
+      "."
+    ],
+    "stats": {
+      "rating": [
+        "valutazione",
+        "voto",
+        "rating",
+        "punteggio"
+      ],
+      "shotsCount": [
+        "tiri",
+        "tiro",
+        "conclusioni",
+        "conclusione"
+      ],
+      "shotAccuracy": [
+        "precisione tiri",
+        "precisione dei tiri",
+        "accuratezza tiri",
+        "accuratezza dei tiri",
+        "precisione tiro"
+      ],
+      "passes": [
+        "passaggi"
+      ],
+      "keyPasses": [
+        "passaggi chiave",
+        "passaggi decisivi",
+        "passaggi importanti",
+        "assist potenziali"
+      ],
+      "passAccuracy": [
+        "precisione passaggi",
+        "precisione dei passaggi",
+        "accuratezza passaggi",
+        "accuratezza dei passaggi"
+      ],
+      "tackles": [
+        "contrasti",
+        "contrasto",
+        "interventi",
+        "contrasti tentati"
+      ],
+      "tacklesAccuracy": [
+        "contrasti riusciti",
+        "successo contrasti",
+        "precisione contrasti"
+      ],
+      "dribbles": [
+        "dribbling",
+        "uno contro uno"
+      ],
+      "dribblesAccuracy": [
+        "dribbling riusciti",
+        "dribbling completati",
+        "successo dribbling",
+        "precisione dribbling"
+      ],
+      "saves": [
+        "parate",
+        "parata",
+        "salvataggi",
+        "interventi del portiere"
+      ],
+      "penaltySaves": [
+        "rigori parati",
+        "rigore parato",
+        "penalità parate",
+        "penalita parate"
+      ]
+    },
+    "events": {
+      "goal": [
+        "gol",
+        "goal",
+        "rete",
+        "reti",
+        "segna",
+        "ha segnato"
+      ],
+      "assist": [
+        "assist",
+        "passaggio decisivo",
+        "passaggi decisivi"
+      ],
+      "substitution_in": [
+        "entra",
+        "entrato",
+        "subentra"
+      ],
+      "substitution_out": [
+        "sostituito",
+        "esce",
+        "uscito",
+        "fuori dal campo"
+      ],
+      "yellowCard": [
+        "cartellino giallo",
+        "ammonizione",
+        "giallo"
+      ],
+      "redCard": [
+        "cartellino rosso",
+        "espulsione",
+        "rosso"
+      ],
+      "ownGoal": [
+        "autogol",
+        "autorete"
+      ],
+      "missedPenalty": [
+        "rigore sbagliato",
+        "penalità sbagliata",
+        "rigore non realizzato",
+        "penalita non realizzata"
+      ],
+      "injury": [
+        "infortunio",
+        "infortunato",
+        "si infortuna"
+      ]
+    }
+  },
+  "fr": {
+    "decimal": [
+      "virgule",
+      "point",
+      ",",
+      "."
+    ],
+    "stats": {
+      "rating": [
+        "évaluation",
+        "evaluation"
+      ],
+      "shotsCount": [
+        "tirs",
+        "tir"
+      ],
+      "shotAccuracy": [
+        "précision des tirs",
+        "precision des tirs",
+        "précision tirs",
+        "precision tirs"
+      ],
+      "passes": [
+        "passes",
+        "pass"
+      ],
+      "keyPasses": [
+        "passes clés",
+        "passes cles",
+        "passe clé",
+        "passe cle"
+      ],
+      "passAccuracy": [
+        "précision des passes",
+        "precision des passes",
+        "précision passes",
+        "precision passes"
+      ],
+      "tackles": [
+        "tacles",
+        "tacle"
+      ],
+      "tacklesAccuracy": [
+        "tacles réussis",
+        "tacles reussis"
+      ],
+      "dribbles": [
+        "dribbles",
+        "dribble"
+      ],
+      "dribblesAccuracy": [
+        "dribbles réussis",
+        "dribbles reussis"
+      ],
+      "saves": [
+        "arrêts",
+        "arrets",
+        "arrêt",
+        "arret"
+      ],
+      "penaltySaves": [
+        "arrêts sur penalty",
+        "arrets sur penalty",
+        "arrêt sur penalty",
+        "arret sur penalty"
+      ]
+    },
+    "events": {
+      "goal": [
+        "but",
+        "buts"
+      ],
+      "assist": [
+        "passe décisive",
+        "passes décisives",
+        "passe decisive",
+        "passes decisives"
+      ],
+      "substitution_in": [
+        "entre",
+        "entre en jeu",
+        "entre sur le terrain",
+        "fait son entrée"
+      ],
+      "substitution_out": [
+        "sort",
+        "sort du terrain",
+        "quitte le terrain",
+        "est remplacé"
+      ],
+      "yellowCard": [
+        "carton jaune",
+        "cartons jaunes"
+      ],
+      "redCard": [
+        "carton rouge",
+        "cartons rouges"
+      ],
+      "ownGoal": [
+        "but contre son camp",
+        "buts contre son camp"
+      ],
+      "missedPenalty": [
+        "pénalité non réalisée",
+        "penalite non realisee",
+        "pénalités non réalisées",
+        "penalites non realisees"
+      ],
+      "injury": [
+        "blessure",
+        "blessures"
+      ]
+    }
+  },
+  "de": {
+    "decimal": [
+      "komma",
+      "punkt",
+      ",",
+      "."
+    ],
+    "stats": {
+      "rating": [
+        "bewertung"
+      ],
+      "shotsCount": [
+        "schüsse",
+        "schusse",
+        "schuss"
+      ],
+      "shotAccuracy": [
+        "schussgenauigkeit",
+        "schuss genauigkeit"
+      ],
+      "passes": [
+        "pässe",
+        "passe",
+        "pass"
+      ],
+      "keyPasses": [
+        "schlüsselpässe",
+        "schlusselpasse",
+        "schlüsselpass",
+        "schlusselpass"
+      ],
+      "passAccuracy": [
+        "passgenauigkeit",
+        "pass genauigkeit"
+      ],
+      "tackles": [
+        "zweikämpfe",
+        "zweikampfe",
+        "zweikampf"
+      ],
+      "tacklesAccuracy": [
+        "erfolgsquote tacklings",
+        "erfolgsquote tackling",
+        "tacklings erfolgreich"
+      ],
+      "dribbles": [
+        "dribblings",
+        "dribbling"
+      ],
+      "dribblesAccuracy": [
+        "dribbling erfolgsquote",
+        "dribblings erfolgreich"
+      ],
+      "saves": [
+        "paraden",
+        "parade"
+      ],
+      "penaltySaves": [
+        "gehaltene elfmeter",
+        "elfmeter gehalten"
+      ]
+    },
+    "events": {
+      "goal": [
+        "tor",
+        "tore"
+      ],
+      "assist": [
+        "vorlage",
+        "vorlagen"
+      ],
+      "substitution_in": [
+        "kommt rein",
+        "eingewechselt"
+      ],
+      "substitution_out": [
+        "geht raus",
+        "ausgewechselt"
+      ],
+      "yellowCard": [
+        "gelbe karte",
+        "gelb"
+      ],
+      "redCard": [
+        "rote karte",
+        "rot"
+      ],
+      "ownGoal": [
+        "eigentor",
+        "eigentore"
+      ],
+      "missedPenalty": [
+        "elfmeter verschossen",
+        "nicht realisierter elfmeter"
+      ],
+      "injury": [
+        "verletzung",
+        "verletzt"
+      ]
+    }
+  },
+  "es": {
+    "decimal": [
+      "coma",
+      "punto",
+      ",",
+      "."
+    ],
+    "stats": {
+      "rating": [
+        "calificación",
+        "calificacion"
+      ],
+      "shotsCount": [
+        "tiros",
+        "tiro"
+      ],
+      "shotAccuracy": [
+        "precisión de tiro",
+        "precision de tiro",
+        "precision tiro"
+      ],
+      "passes": [
+        "pases",
+        "pase"
+      ],
+      "keyPasses": [
+        "pases clave",
+        "pase clave"
+      ],
+      "passAccuracy": [
+        "precisión de pases",
+        "precision de pases",
+        "precision pases"
+      ],
+      "tackles": [
+        "entradas",
+        "entrada"
+      ],
+      "tacklesAccuracy": [
+        "entradas exitosas",
+        "entradas correctas"
+      ],
+      "dribbles": [
+        "regates",
+        "regate"
+      ],
+      "dribblesAccuracy": [
+        "regates exitosos",
+        "regates completados"
+      ],
+      "saves": [
+        "paradas",
+        "parada"
+      ],
+      "penaltySaves": [
+        "penaltis detenidos",
+        "penalti detenido"
+      ]
+    },
+    "events": {
+      "goal": [
+        "gol",
+        "goles"
+      ],
+      "assist": [
+        "asistencia",
+        "asistencias"
+      ],
+      "substitution_in": [
+        "entra al campo",
+        "entra"
+      ],
+      "substitution_out": [
+        "sale del campo",
+        "sale"
+      ],
+      "yellowCard": [
+        "tarjeta amarilla",
+        "tarjetas amarillas"
+      ],
+      "redCard": [
+        "tarjeta roja",
+        "tarjetas rojas"
+      ],
+      "ownGoal": [
+        "autogol",
+        "autogoles"
+      ],
+      "missedPenalty": [
+        "penalti fallado",
+        "penalti no realizado"
+      ],
+      "injury": [
+        "lesión",
+        "lesion",
+        "lesiones"
+      ]
+    }
+  },
+  "pt": {
+    "decimal": [
+      "virgula",
+      "vírgula",
+      "ponto",
+      ",",
+      "."
+    ],
+    "stats": {
+      "rating": [
+        "avaliação",
+        "avaliacao"
+      ],
+      "shotsCount": [
+        "chutes",
+        "chute"
+      ],
+      "shotAccuracy": [
+        "precisão de chutes",
+        "precisao de chutes",
+        "precisão chutes",
+        "precisao chutes"
+      ],
+      "passes": [
+        "passes",
+        "passe"
+      ],
+      "keyPasses": [
+        "passes chave",
+        "passes-chave",
+        "passe chave"
+      ],
+      "passAccuracy": [
+        "precisão de passes",
+        "precisao de passes",
+        "precisão passes",
+        "precisao passes"
+      ],
+      "tackles": [
+        "desarmes",
+        "desarme"
+      ],
+      "tacklesAccuracy": [
+        "desarmes certos",
+        "taxa de desarmes certos"
+      ],
+      "dribbles": [
+        "dribles",
+        "drible"
+      ],
+      "dribblesAccuracy": [
+        "dribles bem sucedidos",
+        "dribles bem-sucedidos"
+      ],
+      "saves": [
+        "defesas",
+        "defesa"
+      ],
+      "penaltySaves": [
+        "pênaltis defendidos",
+        "penaltis defendidos",
+        "pênalti defendido",
+        "penalti defendido"
+      ]
+    },
+    "events": {
+      "goal": [
+        "gol",
+        "gols"
+      ],
+      "assist": [
+        "assistência",
+        "assistencias"
+      ],
+      "substitution_in": [
+        "entra em campo",
+        "entra"
+      ],
+      "substitution_out": [
+        "sai de campo",
+        "sai"
+      ],
+      "yellowCard": [
+        "cartão amarelo",
+        "cartoes amarelos"
+      ],
+      "redCard": [
+        "cartão vermelho",
+        "cartoes vermelhos"
+      ],
+      "ownGoal": [
+        "gol contra",
+        "gols contra"
+      ],
+      "missedPenalty": [
+        "pênalti perdido",
+        "penalti perdido",
+        "pênalti não realizado",
+        "penalti nao realizado"
+      ],
+      "injury": [
+        "lesão",
+        "lesao",
+        "lesões",
+        "lesoes"
+      ]
+    }
+  },
+  "tr": {
+    "decimal": [
+      "virgül",
+      "virgul",
+      "nokta",
+      ",",
+      "."
+    ],
+    "stats": {
+      "rating": [
+        "derece",
+        "puan"
+      ],
+      "shotsCount": [
+        "şutlar",
+        "sutlar",
+        "şut",
+        "sut"
+      ],
+      "shotAccuracy": [
+        "şut isabeti",
+        "sut isabeti"
+      ],
+      "passes": [
+        "paslar",
+        "pas"
+      ],
+      "keyPasses": [
+        "kilit paslar",
+        "kilit pas"
+      ],
+      "passAccuracy": [
+        "pas isabeti"
+      ],
+      "tackles": [
+        "müdahaleler",
+        "mudahaleler",
+        "müdahale",
+        "mudahale"
+      ],
+      "tacklesAccuracy": [
+        "başarılı müdahale oranı",
+        "basarili mudahale orani"
+      ],
+      "dribbles": [
+        "çalımlar",
+        "calimlar",
+        "çalım",
+        "calim"
+      ],
+      "dribblesAccuracy": [
+        "başarılı çalım oranı",
+        "basarili calim orani"
+      ],
+      "saves": [
+        "kurtarışlar",
+        "kurtarislar",
+        "kurtarış",
+        "kurtaris"
+      ],
+      "penaltySaves": [
+        "kurtarılan penaltılar",
+        "kurtarilan penaltilar",
+        "penaltı kurtarışları",
+        "penalti kurtarislari"
+      ]
+    },
+    "events": {
+      "goal": [
+        "gol",
+        "goller"
+      ],
+      "assist": [
+        "asist",
+        "asistler"
+      ],
+      "substitution_in": [
+        "oyuna girer",
+        "oyuna girdi",
+        "girdi"
+      ],
+      "substitution_out": [
+        "oyundan çıkar",
+        "oyundan çıktı",
+        "çıktı",
+        "cikti"
+      ],
+      "yellowCard": [
+        "sarı kart",
+        "sari kart"
+      ],
+      "redCard": [
+        "kırmızı kart",
+        "kirmizi kart"
+      ],
+      "ownGoal": [
+        "kendi kalesine gol",
+        "kendi kalesine"
+      ],
+      "missedPenalty": [
+        "penaltı kaçtı",
+        "penalti kacti",
+        "kaçan penaltı",
+        "kacan penalti"
+      ],
+      "injury": [
+        "sakatlık",
+        "sakatlik",
+        "sakatlandı",
+        "sakatlandi"
+      ]
+    }
+  },
+  "id": {
+    "decimal": [
+      "koma",
+      ",",
+      "."
+    ],
+    "stats": {
+      "rating": [
+        "rating",
+        "rating pemain"
+      ],
+      "shotsCount": [
+        "tembakan",
+        "jumlah tembakan"
+      ],
+      "shotAccuracy": [
+        "akurasi tembakan"
+      ],
+      "passes": [
+        "operan",
+        "jumlah operan"
+      ],
+      "keyPasses": [
+        "operan kunci"
+      ],
+      "passAccuracy": [
+        "akurasi operan"
+      ],
+      "tackles": [
+        "tekel"
+      ],
+      "tacklesAccuracy": [
+        "akurasi tekel",
+        "tekel berhasil"
+      ],
+      "dribbles": [
+        "dribel"
+      ],
+      "dribblesAccuracy": [
+        "akurasi dribel",
+        "dribel berhasil"
+      ],
+      "saves": [
+        "penyelamatan"
+      ],
+      "penaltySaves": [
+        "penyelamatan penalti"
+      ]
+    },
+    "events": {
+      "goal": [
+        "gol"
+      ],
+      "assist": [
+        "assist"
+      ],
+      "substitution_in": [
+        "masuk",
+        "masuk lapangan"
+      ],
+      "substitution_out": [
+        "keluar",
+        "keluar lapangan"
+      ],
+      "yellowCard": [
+        "kartu kuning",
+        "kuning"
+      ],
+      "redCard": [
+        "kartu merah",
+        "merah"
+      ],
+      "ownGoal": [
+        "gol bunuh diri"
+      ],
+      "missedPenalty": [
+        "penalti gagal",
+        "gagal penalti"
+      ],
+      "injury": [
+        "cedera"
+      ]
+    }
+  }
+}
