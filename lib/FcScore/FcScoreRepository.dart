@@ -24,6 +24,7 @@ import '../utils/databaseUtils.dart' show getPositionPriority;
 import 'FcScoreApi.dart';
 import 'FcScoreMappingIssues.dart';
 import 'FcScoreClubCatalog.dart';
+import 'FcScoreCompetitionStructure.dart';
 import 'FcScoreCareerIdentity.dart';
 import 'FcScoreModels.dart';
 import 'FcScoreSeasonStats.dart';
@@ -35,6 +36,7 @@ import 'FcScorePlayerCreation.dart';
 part 'FcScoreWorldRepository.dart';
 part 'FcScoreMatchStandings.dart';
 part 'FcScoreOpponentCompletion.dart';
+part 'FcScoreFixtureStandings.dart';
 
 String _uuid() => const Uuid().v4();
 

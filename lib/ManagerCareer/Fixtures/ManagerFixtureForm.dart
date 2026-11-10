@@ -365,6 +365,7 @@ class _ManagerFixtureFormState extends State<ManagerFixtureForm> {
           selectedTeamId: _opponent?.id,
           selectedLeagueId: _opponent?.leagueId,
           initialLeagueId: _opponent?.leagueId ?? _ownTeam.leagueId,
+          personId: widget.preloaded == null ? widget.person.id : null,
         ),
       ),
     );
@@ -388,7 +389,52 @@ class _ManagerFixtureFormState extends State<ManagerFixtureForm> {
         controller.clear();
       }
     });
-    await _rememberOpponent();
+    await Future.wait([_rememberOpponent(), _suggestPositions()]);
+  }
+
+  String _suggestedPosition = '', _suggestedOtherPosition = '';
+  int _positionToken = 0;
+
+  Future<void> _suggestPositions() async {
+    final tournament = _tournament;
+    if (widget.preloaded != null || tournament == null) return;
+    final date = _date ?? _defaultDate();
+    final seasonId = _seasonFor(date) ?? _seasonId;
+    if (seasonId == null) return;
+    final token = ++_positionToken;
+    try {
+      final positions = await FcScoreRepository(sql: SqlService.instance)
+          .fixtureStandingPositions(
+            widget.person,
+            seasonId: seasonId,
+            tournamentId: tournament.id,
+            ownTeamId: _ownTeam.id,
+            opponentTeamId: _opponent?.id,
+            date: date,
+          );
+      if (!mounted || token != _positionToken) return;
+      String apply(TextEditingController field, int? value, String last) {
+        final text = value == null ? '' : '$value';
+        if (field.text.trim().isNotEmpty && field.text.trim() != last) {
+          return last;
+        }
+        field.text = text;
+        return text;
+      }
+
+      setState(() {
+        _suggestedPosition = apply(
+          _position,
+          positions.own,
+          _suggestedPosition,
+        );
+        _suggestedOtherPosition = apply(
+          _otherPosition,
+          positions.opponent,
+          _suggestedOtherPosition,
+        );
+      });
+    } catch (_) {}
   }
 
   Future<void> _rememberOpponent() async {
@@ -468,7 +514,9 @@ class _ManagerFixtureFormState extends State<ManagerFixtureForm> {
             SelectTournamentPage(fifaVersion: widget.person.fifaVersion),
       ),
     );
-    if (selected != null) setState(() => _tournament = selected);
+    if (selected == null) return;
+    setState(() => _tournament = selected);
+    await _suggestPositions();
   }
 
   CompetitionFormat get _format {
@@ -512,7 +560,10 @@ class _ManagerFixtureFormState extends State<ManagerFixtureForm> {
     );
     if (mounted && date != null) {
       setState(() => _date = date);
-      if (!_opponentDirty) await _rememberOpponent();
+      await Future.wait([
+        if (!_opponentDirty) _rememberOpponent(),
+        _suggestPositions(),
+      ]);
     }
   }
 

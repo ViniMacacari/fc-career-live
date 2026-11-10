@@ -3069,6 +3069,22 @@ class SqlService {
     });
   }
 
+  Future<Set<String>> getCareerTeamIds(String personId) async {
+    final db = await database;
+    final rows = await db.rawQuery(
+      '''
+      SELECT teamId AS id FROM FcScoreWorldTeam WHERE personId = ?
+      UNION SELECT oppositeTeamId FROM ManagerFixtures WHERE personId = ?
+      UNION SELECT oppositeTeamId FROM PlayerFixtures WHERE personId = ?
+      ''',
+      [personId, personId, personId],
+    );
+    return {
+      for (final row in rows)
+        if (row['id'] != null) '${row['id']}',
+    };
+  }
+
   Future<DateTime?> getLatestFixtureDate(String personId) async {
     final rows = await (await database).rawQuery(
       '''

@@ -247,7 +247,7 @@ class _FcScoreImportPageState extends State<FcScoreImportPage> {
       widget.link.competitions.addAll(_link.competitions);
       widget.link.seasonId = _link.seasonId;
       widget.link.playerId = _link.playerId;
-      await _refreshStandings();
+      await _refreshStandings(fixtureId: result.fixtureId);
       if (mounted) {
         setState(() {
           _savedId = result.fixtureId;
@@ -319,7 +319,10 @@ class _FcScoreImportPageState extends State<FcScoreImportPage> {
       widget.link.playerId = _link.playerId;
       final standingsLink = _link.copy();
       standingsLink.seasonId = fcId(widget.target!['seasonId']);
-      await _refreshStandings(link: standingsLink);
+      await _refreshStandings(
+        link: standingsLink,
+        fixtureId: fcId(widget.target!['id']),
+      );
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
       if (mounted) setState(() => _error = '$error');
@@ -328,26 +331,36 @@ class _FcScoreImportPageState extends State<FcScoreImportPage> {
     }
   }
 
-  Future<void> _refreshStandings({FcScoreLink? link}) async {
+  Future<void> _refreshStandings({
+    FcScoreLink? link,
+    required String fixtureId,
+  }) async {
     final api = widget.api;
-    if (api == null) return;
-    try {
-      await widget.repository.refreshMatchStandings(
-        api: api,
-        person: widget.person,
-        link: link ?? _link,
-      );
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Partida salva. Não foi possível atualizar a classificação: $error',
-            ),
-          ),
+    if (api != null) {
+      try {
+        await widget.repository.refreshMatchStandings(
+          api: api,
+          person: widget.person,
+          link: link ?? _link,
         );
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Partida salva. Não foi possível atualizar a classificação: $error',
+              ),
+            ),
+          );
+        }
       }
     }
+    try {
+      await widget.repository.syncFixtureStandings(
+        widget.person,
+        fixtureIds: [fixtureId],
+      );
+    } catch (_) {}
   }
 
   Future<void> _view() async {

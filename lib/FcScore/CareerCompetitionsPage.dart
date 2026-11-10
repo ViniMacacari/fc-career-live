@@ -17,6 +17,10 @@ import 'FcScoreCompetitionStructure.dart';
 import 'CareerCompetitionWidgets.dart';
 import 'FcScoreStandingZones.dart';
 import '../Common/FixtureDetailsPage.dart';
+import '../ManagerCareer/OtherPlayers/OtherPlayersData.dart';
+import '../ManagerCareer/OtherPlayers/OtherTeamPage.dart';
+import '../ManagerCareer/TeamPage/TeamPage.dart';
+import '../utils/Components/CareerPageWidgets.dart';
 
 class CareerCompetitionsPage extends StatefulWidget {
   const CareerCompetitionsPage({
@@ -39,14 +43,49 @@ class _CareerCompetitionsPageState extends State<CareerCompetitionsPage> {
   List<FcJson> _competitions = [];
   List<Season> _seasons = [];
   String? _seasonId;
+  Map<String, String> _ownRemote = {};
   Future<void> _load() async {
     _identity = await FcScoreCareerIdentity.load(_repo.sql, widget.person);
+    try {
+      await _repo.syncFixtureStandings(widget.person);
+    } catch (_) {}
     _competitions = await _repo.careerCompetitions(widget.person.id);
+    _ownRemote = {
+      for (final row in await (await _repo.sql.database).query(
+        'FcScoreWorldTeam',
+        columns: ['seasonId', 'remoteId'],
+        where: 'personId = ? AND teamId = ?',
+        whereArgs: [widget.person.id, widget.person.teamId],
+      ))
+        fcId(row['seasonId']): fcId(row['remoteId']),
+    };
     _seasons = await _repo.sql.getSeasons(widget.person.id);
     _seasonId ??=
         widget.initialSeasonId ??
         _competitions.firstOrNull?['seasonId'] as String?;
     if (mounted) setState(() {});
+  }
+
+  FcJson? _ownRow(FcJson competition) {
+    final own = _ownRemote[fcId(competition['seasonId'])];
+    FcJson? found;
+    for (final stage in fcList(fcObject(competition['data'])['stages'])) {
+      for (final group in fcList(stage['groups'])) {
+        final rows = fcList(group['rows']);
+        if (rows.length < 3) continue;
+        final row = rows
+            .where(
+              (r) => own == null
+                  ? r['isUserClub'] == true
+                  : fcId(fcObject(r['team'])['id']) == own,
+            )
+            .firstOrNull;
+        if (row != null && (found == null || (fcInt(row['played']) ?? 0) > 0)) {
+          found = row;
+        }
+      }
+    }
+    return found;
   }
 
   String _seasonLabel(String? id) {
@@ -131,6 +170,14 @@ class _CareerCompetitionsPageState extends State<CareerCompetitionsPage> {
                     padding: const EdgeInsets.only(bottom: 20),
                     child: Row(
                       children: [
+                        TeamLogo.fromItem(
+                          _identity?.club(
+                            widget.person.teamId,
+                            widget.person.leagueId,
+                          ),
+                          size: 34,
+                        ),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Temporada ${_seasonLabel(_seasonId)}',
@@ -178,6 +225,7 @@ class _CareerCompetitionsPageState extends State<CareerCompetitionsPage> {
         : groups
         ? 'Fase de grupos'
         : 'Liga';
+    final own = _ownRow(row);
     return CareerCompetitionSurface(
       onTap: () => Navigator.push(
         context,
@@ -223,6 +271,25 @@ class _CareerCompetitionsPageState extends State<CareerCompetitionsPage> {
             ),
           ),
           const SizedBox(width: 8),
+          if (fcInt(own?['position']) != null)
+            Column(
+              key: ValueKey('competition-own-${row['remoteId']}'),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${fcInt(own!['position'])}º',
+                  style: TextStyle(
+                    color: c.accent,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Text(
+                  '${fcValue(own['points'])} pts · ${fcValue(own['played'])} j',
+                  style: TextStyle(color: c.muted, fontSize: 10),
+                ),
+              ],
+            ),
           Icon(Icons.chevron_right_rounded, color: c.accent, size: 22),
         ],
       ),
@@ -293,7 +360,10 @@ class _CareerCompetitionPageState extends State<CareerCompetitionPage>
     };
     for (final t in _teams) {
       final id = fcId(t['remoteId']);
-      final item = _identity!.club(fcId(t['teamId']), fcId(t['leagueId']));
+      final item = t['teamId'] == widget.person.teamId
+          ? _identity!.club(widget.person.teamId, widget.person.leagueId) ??
+                _identity!.club(fcId(t['teamId']), fcId(t['leagueId']))
+          : _identity!.club(fcId(t['teamId']), fcId(t['leagueId']));
       if (item != null) _items[id] = item;
       _teamNames[id] = item?.label ?? fcName(fcObject(t['data'])['name']);
     }
@@ -351,6 +421,16 @@ class _CareerCompetitionPageState extends State<CareerCompetitionPage>
   Future<void> _roster(String id) async {
     final data = _teams.where((t) => fcId(t['remoteId']) == id).firstOrNull;
     if (data == null) return;
+    if (_own(id) && widget.person.category == PersonCategory.manager) {
+      await Navigator.push<void>(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              TeamPage(person: widget.person, sql: widget.repository.sql),
+        ),
+      );
+      return;
+    }
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -360,6 +440,7 @@ class _CareerCompetitionPageState extends State<CareerCompetitionPage>
           seasonId: _season,
           team: data,
           name: _name(id),
+          item: _items[id],
           identity: _identity!,
           link: _link,
         ),
@@ -879,10 +960,12 @@ class _CareerRosterPage extends StatefulWidget {
     required this.team,
     required this.name,
     required this.identity,
+    this.item,
     this.link,
   });
   final Person person;
   final FcScoreRepository repository;
+  final CatalogItem? item;
   final String seasonId, name;
   final FcJson team;
   final FcScoreCareerIdentity identity;
@@ -933,10 +1016,155 @@ class _CareerRosterPageState extends State<_CareerRosterPage> {
     fcId(widget.team['remoteId']),
   );
   final _search = TextEditingController();
+  late final _others = OtherPlayersRepository(sql: widget.repository.sql);
+  Future<OtherPlayersSnapshot>? _snapshot;
+  bool _opening = false;
+  bool get _manager => widget.person.category == PersonCategory.manager;
+
   @override
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+
+  Future<void> _career(
+    Future<bool> Function(OtherPlayersSnapshot) open,
+    String missing,
+  ) async {
+    if (_opening) return;
+    setState(() => _opening = true);
+    try {
+      final snapshot = await (_snapshot ??= _others.load(widget.person));
+      if (!mounted) return;
+      if (!await open(snapshot) && mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(missing)));
+      }
+      _snapshot = null;
+    } catch (_) {
+      _snapshot = null;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível abrir os dados da carreira.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _opening = false);
+    }
+  }
+
+  Future<void> _openClub() => _career((snapshot) async {
+    final team = snapshot.teamOf(fcId(widget.team['teamId']));
+    if (team == null) return false;
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OtherTeamPage(
+          person: widget.person,
+          repository: _others,
+          snapshot: snapshot,
+          teamId: team.id,
+        ),
+      ),
+    );
+    return true;
+  }, 'Este clube ainda não tem elenco na carreira.');
+
+  Future<void> _openPlayer(String playerId) => _career((snapshot) async {
+    final player = snapshot.players
+        .where((p) => p.playerId == playerId)
+        .firstOrNull;
+    if (player == null) return false;
+    await openOtherPlayer(
+      context,
+      person: widget.person,
+      repository: _others,
+      snapshot: snapshot,
+      player: player,
+    );
+    return true;
+  }, 'Este jogador não está mais em outro clube da carreira.');
+
+  static const _lines = {
+    'GOL': 'Goleiros',
+    'DEF': 'Defensores',
+    'MEI': 'Meio-campistas',
+    'ATA': 'Atacantes',
+  };
+
+  void _details(FcJson p, String name) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheet) => SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FcSection(name),
+          FcFact(
+            'Overall / potencial',
+            '${fcValue(p['overall'])} / ${fcValue(p['potential'])}',
+          ),
+          FcFact('Nacionalidade', fcName(fcObject(p['nationality'])['name'])),
+          FcFact('Posições', fcPositionLabels(p['positions'])),
+          if (p['seasonStats'] != null)
+            FcSeasonStatistics(stats: _seasonStats(p['seasonStats']))
+          else ...[
+            FcFact('Jogos de liga', p['leagueAppearances']),
+            FcFact('Gols de liga', p['leagueGoals']),
+            FcFact('Cartões amarelos', p['yellowCards']),
+            FcFact('Cartões vermelhos', p['redCards']),
+          ],
+          FcFact('Situação', p['injured'] == true ? 'Lesionado' : 'Disponível'),
+          if (_manager && fcId(p['localPlayerId']).isNotEmpty) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                key: const Key('roster-player-career'),
+                onPressed: () {
+                  Navigator.pop(sheet);
+                  _openPlayer(fcId(p['localPlayerId']));
+                },
+                icon: const Icon(Icons.person_search_outlined),
+                label: const Text('Ver perfil na carreira'),
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+        ],
+      ),
+    ),
+  );
+
+  Widget _player(FcJson p) {
+    final name = fcName(p['localName'], fcPlayerName(p));
+    return FcPanel(
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: PlayerAvatar(
+          fifaVersion: widget.person.fifaVersion,
+          realPlayerId: fcId(p['id']),
+          customAvatarFilePath: fcId(p['customAvatarFilePath']),
+        ),
+        title: Text('${fcValue(p['jerseyNumber'])}. $name'),
+        subtitle: Text(
+          '${fcPositionLabels(p['positions'])} · ${fcValue(p['age'])} anos',
+        ),
+        trailing: Text(
+          fcValue(p['overall']),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: CareerUiColors(context).accent,
+          ),
+        ),
+        onTap: () => _details(p, name),
+      ),
+    );
   }
 
   @override
@@ -952,101 +1180,97 @@ class _CareerRosterPageState extends State<_CareerRosterPage> {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final players = snapshot.data!
-              .where(
-                (p) =>
-                    fcNormalize(fcName(p['localName'], fcPlayerName(p)))
-                        .contains(fcNormalize(_search.text)),
-              )
-              .toList();
-          return Column(
+          final c = CareerUiColors(context);
+          final all = snapshot.data!;
+          final players =
+              all
+                  .where(
+                    (p) =>
+                        fcNormalize(fcName(p['localName'], fcPlayerName(p)))
+                            .contains(fcNormalize(_search.text)),
+                  )
+                  .toList()
+                ..sort(
+                  (a, b) => (fcInt(b['overall']) ?? 0).compareTo(
+                    fcInt(a['overall']) ?? 0,
+                  ),
+                );
+          final groups = <String?, List<FcJson>>{};
+          for (final p in players) {
+            (groups[positionLine(fcKnownPositionId(p['positions']))] ??= [])
+                .add(p);
+          }
+          final best =
+              all.map((p) => fcInt(p['overall'])).whereType<int>().toList()
+                ..sort((a, b) => b - a);
+          final top = best.take(11);
+          return ListView(
+            padding: const EdgeInsets.all(20),
             children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: TextField(
-                  controller: _search,
-                  decoration: fcInput('Buscar jogador', icon: Icons.search),
-                  onChanged: (_) => setState(() {}),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  itemCount: players.length,
-                  itemBuilder: (context, i) {
-                    final p = players[i],
-                        name = fcName(p['localName'], fcPlayerName(p));
-                    return FcPanel(
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: PlayerAvatar(
-                          fifaVersion: widget.person.fifaVersion,
-                          realPlayerId: fcId(p['id']),
-                          customAvatarFilePath: fcId(p['customAvatarFilePath']),
-                        ),
-                        title: Text('${fcValue(p['jerseyNumber'])}. $name'),
-                        subtitle: Text(
-                          '${(p['positions'] as List? ?? []).join(' · ')} · ${fcValue(p['age'])} anos',
-                        ),
-                        trailing: Text(
-                          fcValue(p['overall']),
+              Row(
+                children: [
+                  TeamLogo.fromItem(widget.item, size: 48),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.name,
                           style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: CareerUiColors(context).accent,
+                            color: c.text,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                        onTap: () => showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          useSafeArea: true,
-                          builder: (_) => SingleChildScrollView(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                FcSection(name),
-                                FcFact(
-                                  'Overall / potencial',
-                                  '${fcValue(p['overall'])} / ${fcValue(p['potential'])}',
-                                ),
-                                FcFact(
-                                  'Nacionalidade',
-                                  fcName(fcObject(p['nationality'])['name']),
-                                ),
-                                FcFact(
-                                  'Posições',
-                                  (p['positions'] as List? ?? []).join(' · '),
-                                ),
-                                if (p['seasonStats'] != null)
-                                  FcSeasonStatistics(
-                                    stats: _seasonStats(p['seasonStats']),
-                                  )
-                                else ...[
-                                  FcFact(
-                                    'Jogos de liga',
-                                    p['leagueAppearances'],
-                                  ),
-                                  FcFact('Gols de liga', p['leagueGoals']),
-                                  FcFact('Cartões amarelos', p['yellowCards']),
-                                  FcFact('Cartões vermelhos', p['redCards']),
-                                ],
-                                FcFact(
-                                  'Situação',
-                                  p['injured'] == true
-                                      ? 'Lesionado'
-                                      : 'Disponível',
-                                ),
-                                const SizedBox(height: 16),
-                              ],
-                            ),
-                          ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${all.length} jogadores${top.isEmpty ? '' : ' · média dos 11: ${(top.reduce((a, b) => a + b) / top.length).toStringAsFixed(1).replaceAll('.', ',')}'}',
+                          style: TextStyle(color: c.muted, fontSize: 11),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 16),
+              if (_manager) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    key: const Key('roster-open-career'),
+                    onPressed: _opening ? null : _openClub,
+                    icon: _opening
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.groups_outlined),
+                    label: const Text('Abrir clube na carreira'),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              TextField(
+                controller: _search,
+                decoration: fcInput('Buscar jogador', icon: Icons.search),
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 20),
+              if (players.isEmpty)
+                const CareerEmptyState(
+                  title: 'Nenhum jogador encontrado',
+                  subtitle: 'Tente outro nome.',
+                  icon: Icons.search_off_rounded,
+                ),
+              for (final line in [..._lines.keys, null])
+                if (groups[line]?.isNotEmpty ?? false) ...[
+                  FcSection(
+                    '${_lines[line] ?? 'Outros'} · ${groups[line]!.length}',
+                  ),
+                  for (final p in groups[line]!) _player(p),
+                ],
             ],
           );
         },

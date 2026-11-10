@@ -8,6 +8,8 @@ import '../../utils/Components/CareerUiStyle.dart';
 import '../../utils/Components/CareerPageWidgets.dart';
 import '../../utils/Components/SelectionSearchField.dart';
 import '../../utils/GameCatalog.dart';
+import '../../utils/SqlService.dart';
+import '../../utils/TeamSearch.dart';
 
 class SelectTeamPage extends StatefulWidget {
   const SelectTeamPage({
@@ -17,10 +19,14 @@ class SelectTeamPage extends StatefulWidget {
     this.selectedTeamId,
     this.selectedLeagueId,
     this.initialLeagueId,
+    this.personId,
+    this.preferredTeamIds,
   });
   final String fifaVersion;
   final bool realTeamsOnly;
   final String? selectedTeamId, selectedLeagueId, initialLeagueId;
+  final String? personId;
+  final Set<String>? preferredTeamIds;
   @override
   State<SelectTeamPage> createState() => _SelectTeamPageState();
 }
@@ -29,6 +35,20 @@ class _SelectTeamPageState extends State<SelectTeamPage> {
   final Future<GameCatalog> _catalog = GameCatalog.load();
   final _search = TextEditingController();
   String _query = '';
+  late Set<String> _preferred = widget.preferredTeamIds ?? const {};
+
+  @override
+  void initState() {
+    super.initState();
+    final personId = widget.personId;
+    if (personId == null || widget.preferredTeamIds != null) return;
+    SqlService.instance
+        .getCareerTeamIds(personId)
+        .then((ids) {
+          if (mounted) setState(() => _preferred = ids);
+        })
+        .catchError((_) {});
+  }
 
   @override
   void dispose() {
@@ -59,18 +79,19 @@ class _SelectTeamPageState extends State<SelectTeamPage> {
           (entry.league, entry.teams),
       ];
     }
-    final query = selectionSearchKey(_query);
     return [
       for (final (league, teams) in groups)
         (
           league,
-          teams
-              .where(
-                (team) =>
-                    selectionSearchKey(team.label).contains(query) ||
-                    selectionSearchKey(league.label).contains(query),
-              )
-              .toList(),
+          [
+            for (final choice in uniqueClubs(
+              [for (final team in teams) (league: league, team: team)],
+              selectedTeamId: widget.selectedTeamId,
+              selectedLeagueId: widget.selectedLeagueId,
+              preferredTeamIds: _preferred,
+            ))
+              choice.team,
+          ],
         ),
     ].where((group) => group.$2.isNotEmpty).toList()..sort((a, b) {
       final first = a.$1.id == widget.initialLeagueId;
@@ -79,6 +100,23 @@ class _SelectTeamPageState extends State<SelectTeamPage> {
       return a.$1.label.toLowerCase().compareTo(b.$1.label.toLowerCase());
     });
   }
+
+  List<TeamChoice> _results(List<(CatalogItem, List<CatalogItem>)> groups) =>
+      uniqueClubs(
+        searchTeams(
+          [
+            for (final (league, teams) in groups)
+              for (final team in teams) (league: league, team: team),
+          ],
+          _query,
+          preferredLeagueId: widget.initialLeagueId,
+          preferredTeamIds: _preferred,
+        ),
+        selectedTeamId: widget.selectedTeamId,
+        selectedLeagueId: widget.selectedLeagueId,
+        preferredLeagueId: widget.initialLeagueId,
+        preferredTeamIds: _preferred,
+      );
 
   @override
   Widget build(BuildContext context) => Theme(
@@ -113,18 +151,17 @@ class _SelectTeamPageState extends State<SelectTeamPage> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   final groups = _groups(snapshot.data!);
-                  if (groups.isEmpty) {
+                  final searching = _query.trim().isNotEmpty;
+                  final results = searching
+                      ? _results(groups)
+                      : const <TeamChoice>[];
+                  if (searching ? results.isEmpty : groups.isEmpty) {
                     return const CareerEmptyState(
                       title: 'Nenhum time encontrado',
                       subtitle: 'Tente outro nome de clube, seleção ou liga.',
                       icon: Icons.search_off_rounded,
                     );
                   }
-                  final searching = _query.trim().isNotEmpty;
-                  final results = [
-                    for (final (league, teams) in groups)
-                      for (final team in teams) (league, team),
-                  ];
                   return Column(
                     children: [
                       Padding(
@@ -172,8 +209,8 @@ class _SelectTeamPageState extends State<SelectTeamPage> {
                           itemBuilder: (context, index) => searching
                               ? _teamTile(
                                   context,
-                                  results[index].$1,
-                                  results[index].$2,
+                                  results[index].league,
+                                  results[index].team,
                                 )
                               : _league(context, groups[index]),
                         ),

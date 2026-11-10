@@ -19,6 +19,7 @@ import 'SelectTeam/SelectTeamPage.dart';
 import 'SelectTournamentPage.dart';
 import 'StagePicker.dart';
 import '../FcScore/FcScoreQuickImportPage.dart';
+import '../FcScore/FcScoreRepository.dart';
 
 class FixtureForm extends StatefulWidget {
   const FixtureForm({super.key, required this.person, this.existing});
@@ -210,7 +211,54 @@ class _FixtureFormState extends State<FixtureForm> {
       lastDate: DateTime(2100),
       initialDate: _date,
     );
-    if (mounted && date != null) setState(() => _date = date);
+    if (mounted && date != null) {
+      setState(() => _date = date);
+      await _suggestPosition();
+    }
+  }
+
+  String _suggestedPosition = '';
+  int _positionToken = 0;
+
+  Future<void> _suggestPosition() async {
+    final tournament = _tournament;
+    if (tournament == null) return;
+    final token = ++_positionToken;
+    try {
+      final seasons = await _seasons;
+      final seasonId =
+          _seasonId ??
+          seasons
+              .where(
+                (season) =>
+                    !_date.isBefore(season.startDate) &&
+                    !_date.isAfter(season.endDate),
+              )
+              .firstOrNull
+              ?.id ??
+          seasons.firstOrNull?.id;
+      if (seasonId == null) return;
+      final positions = await FcScoreRepository(sql: SqlService.instance)
+          .fixtureStandingPositions(
+            widget.person,
+            seasonId: seasonId,
+            tournamentId: tournament.id,
+            ownTeamId: widget.person.teamId,
+            opponentTeamId: _opponent?.id,
+            date: _date,
+          );
+      if (!mounted || token != _positionToken) return;
+      final field = _numbers['position']!;
+      if (field.text.trim().isNotEmpty &&
+          field.text.trim() != _suggestedPosition) {
+        return;
+      }
+      final text = positions.own == null ? '' : '${positions.own}';
+      setState(() {
+        field.text = text;
+        _suggestedPosition = text;
+      });
+    } catch (_) {}
   }
 
   Future<void> _pickStage() async {
@@ -247,6 +295,7 @@ class _FixtureFormState extends State<FixtureForm> {
           selectedTeamId: _opponent?.id,
           selectedLeagueId: _opponent?.leagueId,
           initialLeagueId: _opponent?.leagueId ?? widget.person.leagueId,
+          personId: widget.person.id,
         ),
       ),
     );
@@ -260,7 +309,9 @@ class _FixtureFormState extends State<FixtureForm> {
             SelectTournamentPage(fifaVersion: widget.person.fifaVersion),
       ),
     );
-    if (selected != null) setState(() => _tournament = selected);
+    if (selected == null) return;
+    setState(() => _tournament = selected);
+    await _suggestPosition();
   }
 
   Future<void> _createSeason() async {

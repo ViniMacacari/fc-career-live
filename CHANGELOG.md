@@ -2,6 +2,16 @@
 
 All notable changes to **FC Career Live**, the EA SPORTS FC career mode tracker for Android, are listed here. Newest versions come first.
 
+## 0.13.3
+
+- Team search shows each club once. A club listed in its league and in a continental competition, or registered twice with the same name, no longer repeats; the club already used in the career is the one kept. Results match partial words and put team names before league names.
+- Imported matches record the table position of your club and of the opponent on the date of each match, calculated from the imported results. Matches imported before are filled in when the standings open or update.
+- A new match fills in both table positions from the imported standings as soon as the competition and the opponent are chosen.
+- Standings keep the position, crest and club name fixed while the numbers scroll, with points, games and goal difference first.
+- The competition list shows your club's position, points and games in each table.
+- Your club in the standings uses the career's name and crest and opens the career squad. Other clubs show the squad by line with an action to open the club or the player in the career.
+- Player positions from the API follow the app language.
+
 ## 0.13.2
 
 - The match pitch places players the same way as the Squad Center: it picks the most compatible combination of positions and slots for both teams. Layouts arranged by hand stay as they are.

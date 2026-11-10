@@ -6,6 +6,7 @@ import '../utils/Components/CareerUiStyle.dart';
 import '../utils/GameCatalog.dart';
 import '../utils/PlayerClubLookup.dart';
 import '../utils/Components/PlayerSearchCard.dart';
+import '../utils/databaseUtils.dart' show positionShortName;
 import 'FcScoreApi.dart';
 import 'FcScoreModels.dart';
 import 'FcScorePlayerCreation.dart';
@@ -16,6 +17,13 @@ String fcMoney(Object? value) => fcNumber(value) == null
     ? '—'
     : NumberFormat.decimalPattern('pt_BR').format(fcNumber(value));
 String fcValue(Object? value) => value == null ? '—' : '$value';
+String fcPositionLabels(Object? positions, {String separator = ' · '}) => {
+  for (final code in positions is List ? positions : [?positions])
+    switch (fcKnownPositionId(code)) {
+      final String id => positionShortName(id),
+      null => '$code',
+    },
+}.join(separator);
 String fcDay(Object? value) {
   final date = DateTime.tryParse(fcId(value));
   return date == null

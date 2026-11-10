@@ -130,6 +130,7 @@ extension FcScoreMatchStandings on FcScoreRepository {
         );
       }
     });
+    await syncFixtureStandings(person);
     return rows.length;
   }
 }

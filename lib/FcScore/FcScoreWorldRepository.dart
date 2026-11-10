@@ -1268,6 +1268,7 @@ extension FcScoreWorldRepository on FcScoreRepository {
     link.seasonId = selected.seasonId;
     link.worldSync.addAll(selected.worldSync);
     link.updateOptions = selected.updateOptions;
+    await syncFixtureStandings(person);
     await GameCatalog.reloadCustomData();
     return result;
   }

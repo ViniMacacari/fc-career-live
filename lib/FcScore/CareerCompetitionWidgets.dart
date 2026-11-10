@@ -201,12 +201,12 @@ class _CareerStandingsTableState extends State<CareerStandingsTable> {
   static const _columns = [
     ('PTS', 'points'),
     ('PJ', 'played'),
+    ('SG', 'goalDifference'),
     ('V', 'wins'),
     ('E', 'draws'),
     ('D', 'losses'),
     ('GP', 'goalsFor'),
     ('GC', 'goalsAgainst'),
-    ('SG', 'goalDifference'),
   ];
   @override
   void dispose() {
@@ -294,7 +294,7 @@ class _CareerStandingsTableState extends State<CareerStandingsTable> {
       );
     final scale = MediaQuery.textScalerOf(context).scale(11) / 11;
     final textScale = scale < 1 ? 1.0 : scale;
-    final rowHeight = 32 * textScale + 24;
+    final rowHeight = 32 * textScale + 24, headerHeight = 38 * textScale;
     Widget cell(Object? value, double width, {bool points = false}) => SizedBox(
       width: width,
       child: Text(
@@ -307,60 +307,47 @@ class _CareerStandingsTableState extends State<CareerStandingsTable> {
         ),
       ),
     );
+    Widget line(String id, bool own, Widget child) => InkWell(
+      onTap: () => widget.onTeam(id),
+      child: Container(
+        height: rowHeight,
+        decoration: BoxDecoration(
+          color: own ? c.accent.withValues(alpha: .1) : null,
+          border: Border(bottom: BorderSide(color: c.line, width: .5)),
+        ),
+        child: child,
+      ),
+    );
     return CareerCompetitionSurface(
       padding: const EdgeInsets.fromLTRB(10, 12, 10, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Icon(Icons.swipe_left_rounded, size: 15, color: c.muted),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'Deslize para ver todas as colunas',
-                  style: TextStyle(fontSize: 10, color: c.muted),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
               final positionWidth = 30 * textScale,
                   columnWidth = 38 * textScale;
-              final teamWidth =
-                  (constraints.maxWidth - positionWidth - 2 * columnWidth)
-                      .clamp(160 * textScale, 240 * textScale)
-                      .toDouble();
+              final teamWidth = (constraints.maxWidth * .46)
+                  .clamp(104.0, 220 * textScale)
+                  .toDouble();
               final formWidth = 120 * textScale, zoneWidth = 230 * textScale;
-              final totalWidth =
-                  positionWidth +
-                  teamWidth +
+              final statsWidth =
                   _columns.length * columnWidth +
                   formWidth +
                   (zones.isEmpty ? 0 : zoneWidth);
-              return Scrollbar(
-                controller: _scroll,
-                thumbVisibility: true,
-                scrollbarOrientation: ScrollbarOrientation.bottom,
-                notificationPredicate: (n) => n.metrics.axis == Axis.horizontal,
-                child: SingleChildScrollView(
-                  key: const Key('competition-table-horizontal'),
-                  controller: _scroll,
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: SizedBox(
-                    width: totalWidth,
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: positionWidth + teamWidth,
                     child: Column(
                       children: [
                         SizedBox(
-                          height: 38 * textScale,
+                          height: headerHeight,
                           child: Row(
                             children: [
                               cell('#', positionWidth),
-                              SizedBox(
-                                width: teamWidth,
+                              Expanded(
                                 child: Text(
                                   'Equipe',
                                   style: TextStyle(
@@ -369,15 +356,6 @@ class _CareerStandingsTableState extends State<CareerStandingsTable> {
                                   ),
                                 ),
                               ),
-                              for (final column in _columns)
-                                cell(
-                                  column.$1,
-                                  columnWidth,
-                                  points: column.$2 == 'points',
-                                ),
-                              cell('Forma', formWidth),
-                              if (zones.isNotEmpty)
-                                cell('Classificação', zoneWidth),
                             ],
                           ),
                         ),
@@ -388,26 +366,12 @@ class _CareerStandingsTableState extends State<CareerStandingsTable> {
                               final id = fcId(fcObject(row['team'])['id']),
                                   own = widget.isOwn(id);
                               final rowZones = fcRowZones(row, zones);
-                              final qualification = rowZones
-                                  .map(_label)
-                                  .join(' · ');
-                              return InkWell(
+                              return KeyedSubtree(
                                 key: ValueKey('competition-standing-$id'),
-                                onTap: () => widget.onTeam(id),
-                                child: Container(
-                                  height: rowHeight,
-                                  decoration: BoxDecoration(
-                                    color: own
-                                        ? c.accent.withValues(alpha: .1)
-                                        : null,
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: c.line,
-                                        width: .5,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
+                                child: line(
+                                  id,
+                                  own,
+                                  Row(
                                     children: [
                                       SizedBox(
                                         width: positionWidth,
@@ -448,68 +412,40 @@ class _CareerStandingsTableState extends State<CareerStandingsTable> {
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
                                                   fontSize: 11,
-                                                  color: c.text,
+                                                  color: own
+                                                      ? c.accent
+                                                      : c.text,
+                                                  fontWeight: own
+                                                      ? FontWeight.w800
+                                                      : FontWeight.w600,
                                                 ),
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      SizedBox(
-                                        width: teamWidth,
-                                        child: Row(
-                                          children: [
-                                            widget.logo(id, 24),
-                                            const SizedBox(width: 6),
-                                            Expanded(
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                  right: 8,
-                                                ),
-                                                child: Text(
-                                                  widget.name(id),
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    height: 1.3,
-                                                    color: c.text,
-                                                    fontWeight: own
-                                                        ? FontWeight.w800
-                                                        : FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      for (final column in _columns)
-                                        cell(
-                                          row[column.$2],
-                                          columnWidth,
-                                          points: column.$2 == 'points',
-                                        ),
-                                      SizedBox(
-                                        width: formWidth,
-                                        child: _form(row['form'], c, textScale),
-                                      ),
-                                      if (zones.isNotEmpty)
-                                        SizedBox(
-                                          width: zoneWidth,
+                                      widget.logo(id, 24),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            right: 6,
+                                          ),
                                           child: Text(
-                                            qualification.isEmpty
-                                                ? '—'
-                                                : qualification,
+                                            widget.name(id),
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              fontSize: 10,
+                                              fontSize: 11,
+                                              height: 1.3,
                                               color: c.text,
+                                              fontWeight: own
+                                                  ? FontWeight.w800
+                                                  : FontWeight.w600,
                                             ),
                                           ),
                                         ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -519,13 +455,106 @@ class _CareerStandingsTableState extends State<CareerStandingsTable> {
                       ],
                     ),
                   ),
-                ),
+                  Container(
+                    width: 1,
+                    height: headerHeight + 1 + widget.rows.length * rowHeight,
+                    color: c.line,
+                  ),
+                  Expanded(
+                    child: Scrollbar(
+                      controller: _scroll,
+                      thumbVisibility: true,
+                      scrollbarOrientation: ScrollbarOrientation.bottom,
+                      notificationPredicate: (n) =>
+                          n.metrics.axis == Axis.horizontal,
+                      child: SingleChildScrollView(
+                        key: const Key('competition-table-horizontal'),
+                        controller: _scroll,
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: SizedBox(
+                          width: statsWidth,
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: headerHeight,
+                                child: Row(
+                                  children: [
+                                    for (final column in _columns)
+                                      cell(
+                                        column.$1,
+                                        columnWidth,
+                                        points: column.$2 == 'points',
+                                      ),
+                                    cell('Forma', formWidth),
+                                    if (zones.isNotEmpty)
+                                      cell('Classificação', zoneWidth),
+                                  ],
+                                ),
+                              ),
+                              Divider(height: 1, color: c.line),
+                              for (final row in widget.rows)
+                                Builder(
+                                  builder: (context) {
+                                    final id = fcId(
+                                      fcObject(row['team'])['id'],
+                                    );
+                                    final qualification = fcRowZones(
+                                      row,
+                                      zones,
+                                    ).map(_label).join(' · ');
+                                    return line(
+                                      id,
+                                      widget.isOwn(id),
+                                      Row(
+                                        children: [
+                                          for (final column in _columns)
+                                            cell(
+                                              row[column.$2],
+                                              columnWidth,
+                                              points: column.$2 == 'points',
+                                            ),
+                                          SizedBox(
+                                            width: formWidth,
+                                            child: _form(
+                                              row['form'],
+                                              c,
+                                              textScale,
+                                            ),
+                                          ),
+                                          if (zones.isNotEmpty)
+                                            SizedBox(
+                                              width: zoneWidth,
+                                              child: Text(
+                                                qualification.isEmpty
+                                                    ? '—'
+                                                    : qualification,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: c.text,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
           const SizedBox(height: 8),
           Text(
-            'PTS Pontos · PJ Jogos · V Vitórias · E Empates · D Derrotas\nGP Gols marcados · GC Gols sofridos · SG Saldo de gols',
+            'PTS Pontos · PJ Jogos · SG Saldo de gols · V Vitórias · E Empates\nD Derrotas · GP Gols marcados · GC Gols sofridos · deslize a tabela para ver tudo',
             style: TextStyle(color: c.muted, fontSize: 9, height: 1.5),
           ),
           if (zones.isNotEmpty) ...[

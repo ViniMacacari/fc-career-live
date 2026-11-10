@@ -572,7 +572,7 @@ class _FcScoreDataPageState extends State<FcScoreDataPage> {
     version: widget.remote.gameVersion,
     realPlayerId: fcId(player['id']),
     details:
-        '${(player['positions'] as List? ?? []).join(' / ')} · ${fcValue(player['age'])} anos · GER ${fcValue(player['overall'])}',
+        '${fcPositionLabels(player['positions'], separator: ' / ')} · ${fcValue(player['age'])} anos · GER ${fcValue(player['overall'])}',
     club: _squadClub,
     onTap: () => _player(player),
   );
@@ -751,7 +751,10 @@ class _FcScoreDataPageState extends State<FcScoreDataPage> {
             FcFact('País', fcName(fcObject(m['nationality'])['name'])),
             FcFact('Retorno', fcDay(m['returnsAt'])),
             FcFact('Custo', fcMoney(m['cost'])),
-            FcFact('Posições', (m['positions'] as List? ?? []).join(' / ')),
+            FcFact(
+              'Posições',
+              fcPositionLabels(m['positions'], separator: ' / '),
+            ),
           ],
         ),
       ),
@@ -768,7 +771,7 @@ class _FcScoreDataPageState extends State<FcScoreDataPage> {
             FcFact('Profundidade defensiva', tactic['defensiveDepth']),
             for (final p in fcList(tactic['lineup']))
               FcFact(
-                fcValue(p['position']),
+                p['position'] == null ? '—' : fcPositionLabels(p['position']),
                 fcName(fcObject(p['player'])['name'], 'Vazio'),
               ),
           ],
@@ -802,7 +805,7 @@ class _FcScoreDataPageState extends State<FcScoreDataPage> {
       CareerPageHeader(
         title: fcPlayerName(data),
         subtitle:
-            '${(data['positions'] as List? ?? []).join(' / ')} · ${fcValue(data['age'])} anos',
+            '${fcPositionLabels(data['positions'], separator: ' / ')} · ${fcValue(data['age'])} anos',
         icon: Icons.person_outline,
         eyebrow: 'Jogador do save',
       ),
