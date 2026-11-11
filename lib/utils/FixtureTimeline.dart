@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../models/ManagerFixture.dart';
 import '../models/ManagerFixturePlayerPerformance.dart';
 import '../models/OpponentLineup.dart';
@@ -39,6 +41,23 @@ class FixtureTimelineEvent {
       kind == FixtureEventKind.goal || kind == FixtureEventKind.ownGoal;
   bool get scoresForOwnTeam =>
       kind == FixtureEventKind.ownGoal ? !ownTeam : ownTeam;
+  FixtureTimelineEvent copyWith({
+    int? minute,
+    String? detail,
+    bool? inferred,
+  }) => FixtureTimelineEvent(
+    id: id,
+    kind: kind,
+    player: player,
+    ownTeam: ownTeam,
+    minute: minute ?? this.minute,
+    addedMinute: addedMinute,
+    detail: detail ?? this.detail,
+    incoming: incoming,
+    penalty: penalty,
+    inferred: inferred ?? this.inferred,
+    goalTypes: goalTypes,
+  );
 }
 
 List<FixtureTimelineEvent> fixtureTimeline({
@@ -230,6 +249,7 @@ List<FixtureTimelineEvent> fixtureTimeline({
       ),
     );
   }
+  _placeOpponentEvents(events, '${fixture['id'] ?? ''}');
   events.sort((a, b) {
     final byMinute = (a.minute ?? 999).compareTo(b.minute ?? 999);
     if (byMinute != 0) return byMinute;
@@ -256,4 +276,183 @@ List<FixtureTimelineEvent> fixtureTimeline({
     }
   }
   return events;
+}
+
+int _stableHash(String value) {
+  var hash = 0x811c9dc5;
+  for (final unit in value.codeUnits) {
+    hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
+  }
+  return hash;
+}
+
+void _placeOpponentEvents(List<FixtureTimelineEvent> events, String seed) {
+  String key(String value) => value.trim().toLowerCase();
+  bool open(FixtureTimelineEvent e) => !e.ownTeam && e.minute == null;
+  final pairs = <String>{};
+  events.removeWhere((e) {
+    if (!open(e) ||
+        e.kind != FixtureEventKind.substitution ||
+        e.detail == null) {
+      return false;
+    }
+    final pair = [key(e.player), key(e.detail!)]..sort();
+    return !pairs.add(pair.join('|'));
+  });
+  if (!events.any(open)) return;
+  final usedGoalMinutes = <int>{
+    for (final e in events)
+      if (e.scores && e.minute != null) e.minute!,
+  };
+  void replace(FixtureTimelineEvent from, FixtureTimelineEvent to) =>
+      events[events.indexOf(from)] = to;
+  int pick(FixtureTimelineEvent e, int lo, int hi, {bool spread = false}) {
+    lo = lo.clamp(1, 90);
+    hi = hi.clamp(lo, 90);
+    final random = Random(_stableHash('$seed:${e.id}'));
+    var minute = lo + random.nextInt(hi - lo + 1);
+    for (var i = 0; spread && i < 8 && usedGoalMinutes.contains(minute); i++) {
+      minute = lo + random.nextInt(hi - lo + 1);
+    }
+    return minute;
+  }
+
+  bool involves(FixtureTimelineEvent e, String player) =>
+      key(e.player) == key(player) ||
+      ((e.kind == FixtureEventKind.substitution ||
+              e.kind == FixtureEventKind.goal) &&
+          e.detail != null &&
+          key(e.detail!) == key(player));
+  Iterable<int> minutesOf(String player) => events
+      .where((e) => !e.ownTeam && e.minute != null && involves(e, player))
+      .map((e) => e.minute!);
+  int last(String player) => minutesOf(player).fold(0, max);
+  int first(String player) => minutesOf(player).fold(91, min);
+  String? entering(FixtureTimelineEvent s) =>
+      s.incoming == true ? s.player : null;
+  String? leaving(FixtureTimelineEvent s) => s.incoming == true
+      ? s.detail
+      : s.incoming == false
+      ? s.player
+      : null;
+  (int, int) window(String player) {
+    var start = 1, end = 90;
+    for (final e in events.where((e) => !e.ownTeam && e.minute != null)) {
+      final minute = e.minute!;
+      if (e.kind == FixtureEventKind.substitution) {
+        final inName = entering(e), outName = leaving(e);
+        if (inName != null && key(inName) == key(player)) {
+          start = max(start, minute + 1);
+        }
+        if (outName != null && key(outName) == key(player)) {
+          end = min(end, minute);
+        }
+      } else if (e.kind == FixtureEventKind.redCard &&
+          key(e.player) == key(player)) {
+        end = min(end, minute);
+      }
+    }
+    start = min(start, 90);
+    return (start, max(start, end));
+  }
+
+  for (final s
+      in events
+          .where((e) => open(e) && e.kind == FixtureEventKind.substitution)
+          .toList()) {
+    final inName = entering(s), outName = leaving(s);
+    final after = outName == null ? 0 : last(outName),
+        before = inName == null ? 91 : first(inName);
+    var lo = max(46, after + 1), hi = min(88, before - 1);
+    if (lo > hi) {
+      lo = after + 1;
+      hi = before - 1;
+    }
+    replace(s, s.copyWith(minute: pick(s, lo, hi), inferred: true));
+  }
+
+  for (final a
+      in events
+          .where((e) => open(e) && e.kind == FixtureEventKind.assist)
+          .toList()) {
+    final goals = events
+        .where((e) => !e.ownTeam && e.kind == FixtureEventKind.goal)
+        .toList();
+    bool forScorer(FixtureTimelineEvent g) =>
+        a.detail != null && key(g.player) == key(a.detail!);
+    if (goals.any(
+      (g) =>
+          g.minute == null &&
+          g.detail != null &&
+          key(g.detail!) == key(a.player) &&
+          (a.detail == null || forScorer(g)),
+    )) {
+      events.remove(a);
+      continue;
+    }
+    final (start, end) = window(a.player);
+    final options = goals
+        .where(
+          (g) =>
+              g.detail == null &&
+              key(g.player) != key(a.player) &&
+              (g.minute == null || (g.minute! >= start && g.minute! <= end)),
+        )
+        .toList();
+    if (options.isEmpty) continue;
+    final named = options.where(forScorer).toList();
+    final pool = named.isEmpty ? options : named;
+    final target =
+        pool[Random(_stableHash('$seed:${a.id}')).nextInt(pool.length)];
+    replace(target, target.copyWith(detail: a.player));
+    events.remove(a);
+  }
+
+  for (final e
+      in events
+          .where(
+            (e) =>
+                open(e) &&
+                e.kind != FixtureEventKind.redCard &&
+                e.kind != FixtureEventKind.assist,
+          )
+          .toList()) {
+    var (start, end) = window(e.player);
+    if (e.kind == FixtureEventKind.goal && e.detail != null) {
+      final (assistStart, assistEnd) = window(e.detail!);
+      if (max(start, assistStart) <= min(end, assistEnd)) {
+        start = max(start, assistStart);
+        end = min(end, assistEnd);
+      }
+    }
+    if (e.kind == FixtureEventKind.injury && end < 90) {
+      start = max(start, end - 4);
+    }
+    final minute = pick(e, start, end, spread: e.scores);
+    if (e.scores) usedGoalMinutes.add(minute);
+    replace(e, e.copyWith(minute: minute, inferred: true));
+  }
+
+  for (final e
+      in events
+          .where((e) => open(e) && e.kind == FixtureEventKind.redCard)
+          .toList()) {
+    final (start, end) = window(e.player);
+    final yellows =
+        events
+            .where(
+              (y) =>
+                  !y.ownTeam &&
+                  y.kind == FixtureEventKind.yellowCard &&
+                  y.minute != null &&
+                  key(y.player) == key(e.player),
+            )
+            .map((y) => y.minute!)
+            .toList()
+          ..sort();
+    final minute = yellows.length >= 2
+        ? yellows.last
+        : pick(e, min(end, max(start, last(e.player) + 1)), end);
+    replace(e, e.copyWith(minute: minute, inferred: true));
+  }
 }

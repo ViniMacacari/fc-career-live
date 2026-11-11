@@ -2,6 +2,13 @@
 
 All notable changes to **FC Career Live**, the EA SPORTS FC career mode tracker for Android, are listed here. Newest versions come first.
 
+## 0.13.4
+
+- Opponent events without a minute get a moment in the timeline that fits the match: substitutions come in the second half, players subbed on only act after coming in, injuries happen just before the player leaves, and a red card after two yellows shares the minute of the second one. Minutes chosen this way show with "~" and stay the same every time the match opens.
+- An opponent assist without a minute is linked to an opponent goal that has no assistant, preferring the scorer it names, and shows as the assist of that goal instead of a separate row.
+- Matches already saved in a career in progress show the corrected timeline without any change to their data. Minutes typed by hand are kept, and your own club's events are not changed.
+- The APK built by the build script carries the version in its name.
+
 ## 0.13.3
 
 - Team search shows each club once. A club listed in its league and in a continental competition, or registered twice with the same name, no longer repeats; the club already used in the career is the one kept. Results match partial words and put team names before league names.
