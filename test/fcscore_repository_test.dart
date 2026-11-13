@@ -1034,13 +1034,17 @@ void main() {
       return 'mine';
     }
 
-    Future<void> complete({FcJson? raw, String fixtureId = 'mine'}) =>
-        repo.completeFixture(
-          person: person,
-          link: link,
-          match: FcScoreMatch.fromReport(raw ?? apiReport()),
-          fixtureId: fixtureId,
-        );
+    Future<void> complete({
+      FcJson? raw,
+      String fixtureId = 'mine',
+      bool moveLink = false,
+    }) => repo.completeFixture(
+      person: person,
+      link: link,
+      match: FcScoreMatch.fromReport(raw ?? apiReport()),
+      fixtureId: fixtureId,
+      moveLink: moveLink,
+    );
 
     test(
       'Missing opponents require consent and are reused from club memory',
@@ -1420,6 +1424,47 @@ void main() {
         isNull,
       );
     });
+
+    test(
+      'The fixture holding the link is shown and the link can move',
+      () async {
+        final imported = await import(apiReport());
+        await registered();
+        final other = await repo.fixtureLinkedElsewhere(
+          person: person,
+          match: FcScoreMatch.fromReport(apiReport()),
+          fixtureId: 'mine',
+        );
+        expect(other?['id'], imported.fixtureId);
+        expect(
+          await repo.fixtureLinkedElsewhere(
+            person: person,
+            match: FcScoreMatch.fromReport(apiReport()),
+            fixtureId: imported.fixtureId,
+          ),
+          isNull,
+        );
+        await complete(moveLink: true);
+        final links = await db.query('FcScoreImport');
+        expect(links.map((r) => r['fixtureId']), ['mine']);
+        expect(
+          await db.query(
+            'ManagerFixtures',
+            where: 'id = ?',
+            whereArgs: [imported.fixtureId],
+          ),
+          hasLength(1),
+        );
+        expect(
+          await repo.fixtureLinkedElsewhere(
+            person: person,
+            match: FcScoreMatch.fromReport(apiReport()),
+            fixtureId: 'mine',
+          ),
+          isNull,
+        );
+      },
+    );
 
     test(
       'Player career keeps typed counters and fills the missing ones',

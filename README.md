@@ -3,7 +3,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 [![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)](#getting-started)
-[![Version](https://img.shields.io/badge/version-0.13.4-informational)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.13.5-informational)](CHANGELOG.md)
 
 **FC Career Live** is an unofficial career mode tracker for **EA SPORTS FC 26**, built with Flutter for Android. Log every match of your manager or player career, follow your squad and every other club, analyse player stats and ratings, record transfers, close seasons and collect trophies, and import data straight from your PC save with the **FC Score** integration.
 

@@ -267,6 +267,21 @@ class _FcScoreImportPageState extends State<FcScoreImportPage> {
       _error = null;
     });
     try {
+      final other = await widget.repository.fixtureLinkedElsewhere(
+        person: widget.person,
+        match: _match,
+        fixtureId: fcId(widget.target!['id']),
+      );
+      var moveLink = false;
+      if (other != null) {
+        final choice = await _askMoveLink(other);
+        if (choice == 'open') {
+          await _openFixture(other);
+          return;
+        }
+        if (choice != 'move') return;
+        moveLink = true;
+      }
       final preview = await widget.repository.opponentCompletionPreview(
         person: widget.person,
         link: _link,
@@ -314,6 +329,7 @@ class _FcScoreImportPageState extends State<FcScoreImportPage> {
         formation: _formation,
         opponentFormation: _opponentFormation,
         createOpponentPlayers: createOpponentPlayers,
+        moveLink: moveLink,
       );
       widget.link.players.addAll(_link.players);
       widget.link.playerId = _link.playerId;
@@ -363,6 +379,61 @@ class _FcScoreImportPageState extends State<FcScoreImportPage> {
     } catch (_) {}
   }
 
+  Future<String?> _askMoveLink(Map<String, Object?> other) async {
+    final catalog = await GameCatalog.load();
+    if (!mounted) return null;
+    final date = DateTime.tryParse(fcId(other['date']));
+    final season = _seasons
+        .where((s) => s.id == fcId(other['seasonId']))
+        .firstOrNull;
+    final opponent = catalog.teamLabel(
+      widget.person.fifaVersion,
+      fcId(other['oppositeTeamId']),
+    );
+    final own = fcInt(other['playerTeamScore']),
+        rival = fcInt(other['oppositeTeamScore']);
+    String two(int value) => value.toString().padLeft(2, '0');
+    final details = [
+      if (date != null)
+        'Jogo de ${two(date.day)}/${two(date.month)}/${date.year}',
+      'contra $opponent',
+      if (own != null && rival != null) '$own–$rival',
+      if (fcId(other['stage']).isNotEmpty) fcId(other['stage']),
+      if (season != null)
+        'temporada ${season.startDate.year == season.endDate.year ? season.startDate.year : '${season.startDate.year}/${two(season.endDate.year % 100)}'}',
+    ].join(' · ');
+    return showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Partida da API usada em outro jogo'),
+        content: SingleChildScrollView(
+          child: Text(
+            'Esta partida da API já completou outro jogo da carreira:\n\n'
+            '$details\n\n'
+            'Se usar aqui, o vínculo passa para esta partida e o outro jogo continua na carreira com o que já tem. '
+            'Se ele for este mesmo jogo registrado duas vezes, exclua o repetido depois.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            key: const ValueKey('fc-link-open-other'),
+            onPressed: () => Navigator.pop(dialogContext, 'open'),
+            child: const Text('Abrir o outro jogo'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            key: const ValueKey('fc-link-move'),
+            onPressed: () => Navigator.pop(dialogContext, 'move'),
+            child: const Text('Usar nesta partida'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _view() async {
     final table = widget.person.category == PersonCategory.manager
         ? 'ManagerFixtures'
@@ -374,6 +445,10 @@ class _FcScoreImportPageState extends State<FcScoreImportPage> {
       whereArgs: [_savedId, widget.person.id],
     );
     if (!mounted || rows.isEmpty) return;
+    await _openFixture(rows.single);
+  }
+
+  Future<void> _openFixture(Map<String, Object?> fixture) async {
     final catalog = await GameCatalog.load();
     final tournaments = [
       ...await catalog.tournaments(widget.person.fifaVersion),
@@ -388,15 +463,12 @@ class _FcScoreImportPageState extends State<FcScoreImportPage> {
       MaterialPageRoute(
         builder: (_) => FixtureDetailsPage(
           person: widget.person,
-          fixture: rows.single,
+          fixture: fixture,
           opponent: catalog.teamLabel(
             widget.person.fifaVersion,
-            fcId(rows.single['oppositeTeamId']),
+            fcId(fixture['oppositeTeamId']),
           ),
-          tournament: fcChoiceLabel(
-            fcId(rows.single['tournamentId']),
-            tournaments,
-          ),
+          tournament: fcChoiceLabel(fcId(fixture['tournamentId']), tournaments),
         ),
       ),
     );

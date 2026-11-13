@@ -2,6 +2,11 @@
 
 All notable changes to **FC Career Live**, the EA SPORTS FC career mode tracker for Android, are listed here. Newest versions come first.
 
+## 0.13.5
+
+- Completing a match with the API when that API match is already linked to another match in the career now shows which match holds it: date, opponent, score, stage and season. You can open that match, cancel, or move the link to the match you are completing. The other match stays in the career with the data it already has.
+- Adding a goal or an assist from the player's photo on the pitch now opens a panel after the minute with the rest of the play: assist, goal location and goal type for a goal, and the scorer for an assist. Save records the play; "Ver atuação completa" keeps the full performance open.
+
 ## 0.13.4
 
 - Opponent events without a minute get a moment in the timeline that fits the match: substitutions come in the second half, players subbed on only act after coming in, injuries happen just before the player leaves, and a red card after two yellows shares the minute of the second one. Minutes chosen this way show with "~" and stay the same every time the match opens.

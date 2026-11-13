@@ -148,7 +148,114 @@ class _PerformanceDetailsState extends State<PerformanceDetails> {
         ..minute = value.minute
         ..addedMinute = value.addedMinute;
     });
-    if (!substitution) _save();
+    if (substitution) return;
+    if (item is PerformanceGoalDetails || item is PerformanceAssistDetails) {
+      if (await _eventDetails(item) != true || !mounted) return;
+    }
+    _save();
+  }
+
+  StateSetter? _refreshSheet;
+
+  String get _playerName =>
+      _editedPlayerName ?? widget.names[_perf.playerInstanceId] ?? '';
+
+  @override
+  void setState(VoidCallback fn) {
+    super.setState(fn);
+    _refreshSheet?.call(() {});
+  }
+
+  Future<bool?> _eventDetails(PerformanceTimeDetails item) async {
+    final goal = item is PerformanceGoalDetails;
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, refresh) {
+          _refreshSheet = refresh;
+          final c = AppColors.of(sheetContext);
+          final chips = item is PerformanceGoalDetails
+              ? _goalChips(item, emptyPartner: 'Escolher')
+              : _assistChips(
+                  item as PerformanceAssistDetails,
+                  emptyPartner: 'Escolher',
+                );
+          final labels = goal
+              ? ['Minuto', 'Assistência', 'Local do gol', 'Tipo do gol']
+              : ['Minuto', 'Autor do gol'];
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: Column(
+                key: const ValueKey('quick-event-details'),
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    goal ? 'Gol' : 'Assistência',
+                    style: TextStyle(
+                      color: c.text,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (_playerName.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      _playerName,
+                      style: TextStyle(color: c.muted, fontSize: 13),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  for (final (i, chip) in chips.indexed)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              labels[i],
+                              style: TextStyle(
+                                color: c.muted,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: chip,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    key: const ValueKey('quick-event-save'),
+                    onPressed: () => Navigator.pop(sheetContext, true),
+                    icon: const Icon(Icons.check_rounded),
+                    label: const Text('Salvar'),
+                  ),
+                  const SizedBox(height: 4),
+                  TextButton(
+                    key: const ValueKey('quick-event-more'),
+                    onPressed: () => Navigator.pop(sheetContext, false),
+                    child: const Text('Ver atuação completa'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    _refreshSheet = null;
+    return result;
   }
 
   late final _ratingText = TextEditingController(
@@ -470,9 +577,10 @@ class _PerformanceDetailsState extends State<PerformanceDetails> {
     required String pickTitle,
     required Widget icon,
     required void Function(SelectedTeamPlayer?) onChanged,
+    String empty = '-',
   }) => _chip(
     avatar: icon,
-    label: Text(name?.isNotEmpty == true ? name! : '-'),
+    label: Text(name?.isNotEmpty == true ? name! : empty),
     highlighted: name?.isNotEmpty == true,
     onPressed: () async {
       final selected = await _pickPartner(pickTitle);
@@ -689,9 +797,13 @@ class _PerformanceDetailsState extends State<PerformanceDetails> {
     );
   }
 
-  List<Widget> _goalChips(PerformanceGoalDetails goal) => [
+  List<Widget> _goalChips(
+    PerformanceGoalDetails goal, {
+    String emptyPartner = '-',
+  }) => [
     _timeChip(goal, 'fixtures.goalTime'),
     _partnerChip(
+      empty: emptyPartner,
       name: goal.assistantName,
       pickTitle: 'fixtures.selectAssistant'.tr(),
       icon: _assistIcon(),
@@ -747,9 +859,13 @@ class _PerformanceDetailsState extends State<PerformanceDetails> {
     ),
   ];
 
-  List<Widget> _assistChips(PerformanceAssistDetails assist) => [
+  List<Widget> _assistChips(
+    PerformanceAssistDetails assist, {
+    String emptyPartner = '-',
+  }) => [
     _timeChip(assist, 'fixtures.assistTime'),
     _partnerChip(
+      empty: emptyPartner,
       name: assist.goalscorerName,
       pickTitle: 'fixtures.selectGoalScorer'.tr(),
       icon: const Icon(Icons.sports_soccer, size: 18),

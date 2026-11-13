@@ -516,6 +516,25 @@ void main() {
     expect(find.byType(PerformanceDetails), findsOneWidget);
     await tester.tap(find.text('common.ok'.tr()));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('quick-event-details')), findsOneWidget);
+    for (final label in [
+      'Minuto',
+      'Assistência',
+      'Local do gol',
+      'Tipo do gol',
+    ]) {
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('quick-event-details')),
+          matching: find.text(label),
+        ),
+        findsOneWidget,
+        reason: label,
+      );
+    }
+    expect(find.byType(PerformanceDetails), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('quick-event-save')));
+    await tester.pumpAndSettle();
     expect(find.byType(PerformanceDetails), findsNothing);
     await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();

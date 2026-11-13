@@ -1206,6 +1206,52 @@ class FcScoreRepository {
     };
   }
 
+  Future<List<({String remoteKey, Map<String, Object?> fixture})>>
+  _linksElsewhere(
+    DatabaseExecutor db,
+    Person person,
+    FcScoreMatch match,
+    String fixtureId,
+  ) async {
+    final table = person.category == PersonCategory.manager
+        ? 'ManagerFixtures'
+        : 'PlayerFixtures';
+    final result = <({String remoteKey, Map<String, Object?> fixture})>[];
+    for (final row in await db.query(
+      'FcScoreImport',
+      where:
+          'personId = ? AND fixtureId != ? AND (remoteKey = ?${match.reportId == null ? '' : ' OR reportId = ?'})',
+      whereArgs: [
+        person.id,
+        fixtureId,
+        match.remoteKey,
+        if (match.reportId != null) match.reportId!,
+      ],
+    )) {
+      final other = await db.query(
+        table,
+        where: 'id = ? AND personId = ?',
+        whereArgs: [row['fixtureId'], person.id],
+        limit: 1,
+      );
+      if (other.isNotEmpty) {
+        result.add((remoteKey: fcId(row['remoteKey']), fixture: other.single));
+      }
+    }
+    return result;
+  }
+
+  Future<Map<String, Object?>?> fixtureLinkedElsewhere({
+    required Person person,
+    required FcScoreMatch match,
+    required String fixtureId,
+  }) async => (await _linksElsewhere(
+    await sql.database,
+    person,
+    match,
+    fixtureId,
+  )).firstOrNull?.fixture;
+
   Future<void> completeFixture({
     required Person person,
     required FcScoreLink link,
@@ -1214,6 +1260,7 @@ class FcScoreRepository {
     String? formation,
     String? opponentFormation,
     bool createOpponentPlayers = false,
+    bool moveLink = false,
   }) async {
     if (person.id != link.personId ||
         fcVersion(person.fifaVersion) != link.gameVersion) {
@@ -1239,28 +1286,18 @@ class FcScoreRepository {
         throw const FcScoreException('Esta partida foi removida da carreira.');
       }
       final fixture = rows.single;
-      for (final row in await txn.query(
-        'FcScoreImport',
-        where:
-            'personId = ? AND fixtureId != ? AND (remoteKey = ?${match.reportId == null ? '' : ' OR reportId = ?'})',
-        whereArgs: [
-          person.id,
-          fixtureId,
-          match.remoteKey,
-          if (match.reportId != null) match.reportId!,
-        ],
-      )) {
-        final other = await txn.query(
-          table,
-          columns: ['id'],
-          where: 'id = ? AND personId = ?',
-          whereArgs: [row['fixtureId'], person.id],
+      final others = await _linksElsewhere(txn, person, match, fixtureId);
+      if (others.isNotEmpty && !moveLink) {
+        throw const FcScoreException(
+          'Esta partida da API já está vinculada a outro jogo da carreira.',
         );
-        if (other.isNotEmpty) {
-          throw const FcScoreException(
-            'Esta partida da API já está vinculada a outro jogo da carreira.',
-          );
-        }
+      }
+      for (final other in others) {
+        await txn.delete(
+          'FcScoreImport',
+          where: 'personId = ? AND remoteKey = ?',
+          whereArgs: [person.id, other.remoteKey],
+        );
       }
       final own = match.own(resolved), opponent = match.opponent(resolved);
       final ownPlayers = fcList(own['players']);

@@ -1,7 +1,7 @@
 name: mcmanager
 description: "FC Career Live: acompanhe suas carreiras no EA FC."
 publish_to: 'none'
-version: 0.13.4+108
+version: 0.13.5+109
 
 environment:
   sdk: ^3.13.4
