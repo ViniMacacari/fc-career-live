@@ -2,6 +2,10 @@
 
 All notable changes to **FC Career Live**, the EA SPORTS FC career mode tracker for Android, are listed here. Newest versions come first.
 
+## 0.13.6
+
+- An API report is only treated as the same match when it points to the same match of the save. A report id reused for a later match between the same clubs (such as the return leg of a final) no longer blocks completing it or shows it as already imported, and the earlier match keeps its own link. Careers in progress need no change.
+
 ## 0.13.5
 
 - Completing a match with the API when that API match is already linked to another match in the career now shows which match holds it: date, opponent, score, stage and season. You can open that match, cancel, or move the link to the match you are completing. The other match stays in the career with the data it already has.

@@ -1426,6 +1426,34 @@ void main() {
     });
 
     test(
+      'A report id reused by the next leg does not block completing it',
+      () async {
+        final first = await import(apiReport());
+        await registered();
+        final returnLeg = apiReport();
+        final match = Map<String, Object?>.from(returnLeg['match'] as Map)
+          ..['fixtureId'] = 43;
+        returnLeg['match'] = match;
+        final next = FcScoreMatch.fromReport(returnLeg);
+        expect(next.reportId, FcScoreMatch.fromReport(apiReport()).reportId);
+        expect(
+          await repo.fixtureLinkedElsewhere(
+            person: person,
+            match: next,
+            fixtureId: 'mine',
+          ),
+          isNull,
+        );
+        await complete(raw: returnLeg);
+        final links = await db.query('FcScoreImport', orderBy: 'fixtureId');
+        expect(links.map((r) => r['fixtureId']).toSet(), {
+          first.fixtureId,
+          'mine',
+        });
+      },
+    );
+
+    test(
       'The fixture holding the link is shown and the link can move',
       () async {
         final imported = await import(apiReport());

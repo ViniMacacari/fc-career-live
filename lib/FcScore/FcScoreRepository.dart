@@ -716,7 +716,7 @@ class FcScoreRepository {
         if (match.reportId != null) match.reportId!,
       ],
     );
-    for (final row in imports) {
+    for (final row in imports.where((row) => _sameImport(row, match))) {
       final fixture = await db.query(
         table,
         where: 'id = ? AND personId = ?',
@@ -1206,6 +1206,14 @@ class FcScoreRepository {
     };
   }
 
+  bool _sameImport(Map<String, Object?> row, FcScoreMatch match) {
+    final key = fcId(row['remoteKey']);
+    if (key == match.remoteKey) return true;
+    return match.reportId != null &&
+        fcId(row['reportId']) == match.reportId &&
+        (key.startsWith('report:') || match.remoteKey.startsWith('report:'));
+  }
+
   Future<List<({String remoteKey, Map<String, Object?> fixture})>>
   _linksElsewhere(
     DatabaseExecutor db,
@@ -1217,7 +1225,7 @@ class FcScoreRepository {
         ? 'ManagerFixtures'
         : 'PlayerFixtures';
     final result = <({String remoteKey, Map<String, Object?> fixture})>[];
-    for (final row in await db.query(
+    final rows = await db.query(
       'FcScoreImport',
       where:
           'personId = ? AND fixtureId != ? AND (remoteKey = ?${match.reportId == null ? '' : ' OR reportId = ?'})',
@@ -1227,7 +1235,8 @@ class FcScoreRepository {
         match.remoteKey,
         if (match.reportId != null) match.reportId!,
       ],
-    )) {
+    );
+    for (final row in rows.where((row) => _sameImport(row, match))) {
       final other = await db.query(
         table,
         where: 'id = ? AND personId = ?',
